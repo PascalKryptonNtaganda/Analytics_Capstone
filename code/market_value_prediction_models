@@ -1,0 +1,77 @@
+####################################################################
+# 4 Building Market Value Prediction Model
+####################################################################
+
+# For Final Datasets
+X = df_merged.loc[:, df_merged.columns != 'Total Market Value - Current Year']
+y = df_merged[['Total Market Value - Current Year']].values.ravel()
+fn = X.columns
+
+#Scaling the variables
+scaler = StandardScaler()
+scaler.fit(X)
+X_s = scaler.transform(X)
+
+# Divide the scaled dataset into training and testing data
+X_train_s, X_test_s, y_train, y_test = train_test_split(X_s, y, test_size =.30,random_state=1234) 
+
+# Divide the dataset into training and testing data.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size =.30,random_state=1234) 
+
+# Decision Tree Regressor
+dtr = DecisionTreeRegressorModel(X_test, y_test, X_train, y_train)
+# Random Forest Regressor
+rfr = RandomForestRegressorModel(X_test, y_test, X_train, y_train)
+# Grid Seach for best Random Forest Regressor
+FindRandomForestRegressorParam_GridSearch(X_test, y_test, X_train, y_train)
+
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(750, 10, X_test, y_test, X_train, y_train)
+
+# Gradient Boosting Regression
+grbr = GradientBoostingRegressorModel(X_test, y_test, X_train, y_train)
+
+# Grid Seach for best Gradient Boosting
+FindGradientBoostingRegressorParam_GridSearch(X_test, y_test, X_train, y_train)
+
+GradientBoostingRegressorModel_WithParams(500, 10, X_test, y_test, X_train, y_train)
+
+# SVM Regression
+svmr = SVMRegressorModel(X_test_s, y_test, X_train_s, y_train)
+# Neural network with default parameters
+NeuralNetworkRegressorModel(X_test_s, y_test, X_train_s, y_train)
+
+# Analyzing Neural Network Model with various combinations
+'''
+for activationFuncName in ['logistic', 'tanh','relu']:
+    for hidden_layer in [250,500,750]:
+        rSquare = NeuralNetworkModel_1Layer(hidden_layer, activationFuncName, X_test_s, y_test, 
+                                                X_train_s, y_train)
+
+
+# Continuing with Relu as other activation functions are giving negative values
+for activationFuncName in ['relu']:
+    for hidden_layer in [40, 50,60, 70, 80]:
+        rSquare = NeuralNetworkModel_1Layer(hidden_layer, activationFuncName, X_test_s, y_test,
+                                               X_train_s, y_train) 
+# Two hidden layers
+for activationFuncName in ['relu']:
+    for hidden_layer in [50]:
+        for hidden_layer2 in [60, 70]:
+            rSquare = GetNeuralNetworkParams_2Layer(hidden_layer, hidden_layer2, 
+                        activationFuncName, X_test_s, y_test, X_train_s, y_train)
+        
+for activationFuncName in ['relu']:
+    for hidden_layer in [20, 30, 40]:
+        for hidden_layer2 in [10, 20, 30]:
+            rSquare = GetNeuralNetworkParams_2Layer(hidden_layer, hidden_layer2, 
+                        activationFuncName , X_test_s, y_test, X_train_s, y_train
+   
+'''
+# Optimizing the NN Model using Hyper Parameters Tuning Using Grid Search
+gridSearch_MarketValue = FindNeuralNetworkParam_GridSearch(X_test_s, y_test, X_train_s, y_train)
+results_gs = pd.DataFrame(gridSearch_MarketValue.cv_results_)
+
+# Evaluating Neural network results with grid search best estimators values
+rSquare = NeuralNetworkModel_3Layer(50, 50, 20,
+            'relu', X_test_s, y_test, X_train_s, y_train)

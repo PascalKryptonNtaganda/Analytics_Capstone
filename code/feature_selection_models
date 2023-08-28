@@ -1,0 +1,79 @@
+####################################################################
+# 4.1.2 Feature Selection 
+####################################################################
+####################################################################
+# 4.1.2.1 Feature Selection Using Random Forest Regressor
+####################################################################
+
+# Find the significant features for Pierce County with their importance values.
+importances = rfr_2019.feature_importances_
+np.sum(importances)
+plt.barh(fn_2019, importances)
+
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_2019, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+df_importance_top15 = df_importances.head(11)
+plt.barh(df_importance_top15.index, df_importance_top15.importance_value)
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=RandomForestRegressor(), threshold= 0.015)
+X_reduced = selector.fit_transform(X_2019, y_2019)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_2019):
+    if i: selected_features.append(j)
+print(f'Selected features for Random Forest Regressor are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_reduced_train, X_reduced_test, y_reduced_train, y_reduced_test \
+       = train_test_split(X_reduced, y_2019, test_size =.3, random_state=1234)
+
+RandomForestRegressorModel(X_reduced_test, y_reduced_test, X_reduced_train, y_reduced_train)
+
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_reduced_test, y_reduced_test, X_reduced_train, y_reduced_train)
+
+####################################################################
+# 4.1.2.1 Feature Selection Using Gradient Boosting
+####################################################################
+
+# Find the significant features for Pierce County with their importance values.
+importances = grbr_2019.feature_importances_
+np.sum(importances)
+plt.barh(fn_2019, importances)
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_2019, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=GradientBoostingRegressor(), threshold=0.015)
+X_reduced = selector.fit_transform(X_2019, y_2019)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_2019):
+    if i: selected_features.append(j)
+print(f'Selected features for GBR are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_reduced_train, X_reduced_test, y_reduced_train, y_reduced_test \
+       = train_test_split(X_reduced, y_2019, test_size =.3, random_state=1234)
+
+GradientBoostingRegressorModel(X_reduced_test, y_reduced_test, X_reduced_train, y_reduced_train)
+
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_test, y_test, X_train, y_train)
+
+

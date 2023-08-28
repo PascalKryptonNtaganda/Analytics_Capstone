@@ -1,0 +1,52 @@
+####################################################################
+# 1. Reading the Datasets
+####################################################################
+
+input_file_appraisal = 'appraisal_account.txt'
+column_names_appraisal = ['Parcel Number', 'Appraisal Account Type', 'Business Name', 'Value Area ID',
+                 'Land Economic Area', 'Buildings', 'Group Account Number', 
+                 'Land Gross Acres', 'Land Net Acres', 'Land Gross Square Feet', 
+                 'Land Net Square Feet', 'Land Gross Front Feet', 'Land Width', 'Land Depth', 
+                 'Submerged Area Square Feet', 'Appraisal Date', 'Waterfront Type', 
+                 'View Quality', 'Utility Electric', 'Utility Sewer', 'Utility Water', 
+                 'Street Type', 'Latitude', 'Longitude']
+
+input_file_improvement = 'improvement.txt'
+column_names_improvement = ['Parcel Number', 'Building ID', 'Property Type', 'Neighborhood',
+                 'Neighborhood Extension', 'Square Feet', 'Net Square Feet', 
+                 'Percent Complete', 'Condition', 'Quality', 'Primary Occupancy Code', 
+                 'Primary Occupancy Description', 'Mobile Home Serial Number', 'Mobile Home Total Length', 
+                 'Mobile Home Make', 'Attic Finished Square Feet', 'Basement Square Feet', 
+                 'Basement Finished Square Feet', 'Carport Square Feet', 'Balcony Square Feet', 
+                 'Porch Square Feet', 'Attached Garage Square Feet', 'Detached Garage Square Feet', 
+                 'Fireplaces', 'Basement Garage Door']
+
+input_file_improvementBuiltAs = 'improvement_builtas.txt'
+column_names_improvementBuiltAs = ['Parcel Number', 'Building ID', 'Built-As Number', 'Built-As ID',
+                 'Built-As Description', 'Built-As Square Feet', 'HVAC', 'HVAC Description', 
+                 'Exterior', 'Interior', 'Stories', 'Story Height', 'Sprinkler Square Feet', 
+                 'Roof Cover', 'Bedrooms', 'Bathrooms', 'Units', 'Class Code', 'Class Description', 
+                 'Year Built', 'Year Remodeled', 'Adjusted Year Built', 'Physical Age', 
+                 'Built-As Length', 'Built-As Width', 'Mobile Home Mode']
+
+
+input_file_sale = 'sale.txt'
+column_names_sale = ['ETN', 'Parcel Count', 'Parcel Number', 'Sale Date',
+                 'Sale Price', 'Deed Type', 'Grantor', 'Grantee', 
+                 'Valid/Invalid', 'Confirmed/Uncomfirmed', 'Exclude Reason', 
+                 'Improved/Vacant', 'Appraisal Account Type']
+                                
+
+
+# Set the delimiter used in the input file
+delimiter = '|'  # Example: Tab-separated values ('\t'), Comma-separated values (','), etc.
+
+# Read the delimited text file into a pandas DataFrame
+df_appraisal = pd.read_csv(input_file_appraisal, delimiter=delimiter, encoding='ISO-8859-1', names=column_names_appraisal)
+df_improvement = pd.read_csv(input_file_improvement, delimiter=delimiter, encoding='ISO-8859-1', names=column_names_improvement)
+df_improvementBuiltAs = pd.read_csv(input_file_improvementBuiltAs, delimiter=delimiter, encoding='ISO-8859-1', names=column_names_improvementBuiltAs)
+df_sale = pd.read_csv(input_file_sale, delimiter=delimiter, encoding='ISO-8859-1', names=column_names_sale)
+
+# Read external Dataset files
+df_Address_Points = pd.read_csv('Address_Points.csv')
+df_school_Data= pd.read_csv("school_by_zipcode.csv")

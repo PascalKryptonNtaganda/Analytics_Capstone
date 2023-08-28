@@ -1,0 +1,45 @@
+####################################################################
+# 4.2.3 PCA
+####################################################################
+
+pca_prep = PCA().fit(X_s_2022)
+pca_prep.n_components_
+
+# Consider the variances as the amount of information.  Drop components providing less information
+# (low variances)
+pca_prep.explained_variance_ratio_
+
+# Create a scree plot and find an "elbow" or an inflection point on the plot.
+plt.plot(pca_prep.explained_variance_ratio_)
+plt.xlabel('k number of components')
+plt.ylabel('Explained variance')
+plt.grid(True)
+plt.show()
+
+# From the scree plot, we choose k = 28  
+n_pc = 28
+pca_2022 = PCA(n_components = n_pc).fit(X_s_2022)
+Xp_2022 = pca_2022.transform(X_s_2022)
+print(f'After PCA, we use {pca_2022.n_components_} components.\n')
+
+# Split the data into training and testing subsets.
+
+Xp_train_2022, Xp_test_2022, yp_train_2022, yp_test_2022 = train_test_split(Xp_2022, y_2022, test_size =.3, random_state = 1234)
+
+# Create  random forest models using the transformed data. 
+rfr_2022 = RandomForestRegressorModel(Xp_test_2022, yp_test_2022, Xp_train_2022, yp_train_2022)
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, Xp_test_2022, yp_test_2022, Xp_train_2022, yp_train_2022)
+
+# For Gradient Boosting 
+gbr_2022 = GradientBoostingRegressorModel(Xp_test_2022, yp_test_2022, Xp_train_2022, yp_train_2022)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, Xp_test_2022, yp_test_2022, Xp_train_2022, yp_train_2022)
+
+# Neural Network models using the transformed data. 
+NeuralNetworkRegressorModel(Xp_test_2022, yp_test_2022, Xp_train_2022, yp_train_2022)
+
+# Neural Network models with Optimized Parameters Values and transformed data. 
+rSquare = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', Xp_test_2022, yp_test_2022,  Xp_train_2022, yp_train_2022)
+

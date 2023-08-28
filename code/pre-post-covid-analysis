@@ -1,0 +1,35 @@
+####################################################################
+# 4 Analyzing Pre-Covid (2019) and Post-Covid (2022) Datasets
+####################################################################
+
+# Splitting the datasets into pre and post covid datasets based on sales date
+df_merged2019 = df_merged[(df_merged['Sale Date'].dt.year == 2019)] 
+df_merged2022 = df_merged[(df_merged['Sale Date'].dt.year == 2022)]
+
+# Dropping Non required columns
+df_merged2019.drop(['Sale Date'] , axis=1, inplace=True)
+df_merged2022.drop(['Sale Date'] , axis=1, inplace=True)
+
+df_merged2019.columns
+df_merged2022.columns
+
+####################################################################
+# 4.1 Analyzing Pre-Covid (2019) Datasets
+####################################################################
+
+# X and Y variables for 2019 Dataset
+X_2019 = df_merged2019.loc[:, df_merged2019.columns != 'Sale Price']
+y_2019 = df_merged2019[['Sale Price']].values.ravel()
+fn_2019 = X_2019.columns
+
+#Scaling the variables
+scaler = StandardScaler()
+scaler.fit(X_2019)
+X_s_2019 = scaler.transform(X_2019)
+
+# Divide the scaled dataset into training and testing data
+X_train_s_2019, X_test_s_2019, y_train_2019, y_test_2019 = train_test_split(X_s_2019, y_2019, test_size =.30, random_state=1234) 
+
+# Divide the non-scaled dataset into training and testing data.
+X_train_2019, X_test_2019, y_train_2019, y_test_2019 = train_test_split(X_2019, y_2019, test_size =.30, random_state=1234) 
+

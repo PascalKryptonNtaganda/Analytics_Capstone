@@ -1,0 +1,31 @@
+####################################################################
+# 4.1.1 Building Models With Default & Hyperparameters Parameters
+
+# Decision Tree Regressor
+dtr_2019 = DecisionTreeRegressorModel(X_test_2019, y_test_2019, X_train_2019, y_train_2019)
+# Random Forest Regressor
+rfr_2019 = RandomForestRegressorModel(X_test_2019, y_test_2019, X_train_2019, y_train_2019)
+# Grid Seach for best Random Forest Regressor
+FindRandomForestRegressorParam_GridSearch(X_test, y_test, X_train, y_train)
+
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_test, y_test, X_train, y_train)
+# Gradient Boosting Regression
+grbr_2019 = GradientBoostingRegressorModel(X_test_2019, y_test_2019, X_train_2019, y_train_2019)
+# Grid Seach for best Gradient Boosting
+FindGradientBoostingRegressorParam_GridSearch(X_test, y_test, X_train, y_train)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_test, y_test, X_train, y_train)
+# SVM Regression
+svmr_2019 = SVMRegressorModel('linear', 10, 0.01, X_test_s_2019, y_test_2019, X_train_s_2019, y_train_2019)
+# Neural network with default parameters
+NeuralNetworkRegressorModel(X_test_s_2019, y_test_2019, X_train_s_2019, y_train_2019)
+
+# Optimizing the NN Model using Hyper Parameters Tuning Using Grid Search
+gridSearch_2019 = FindNeuralNetworkParam_GridSearch(X_test_s_2019, y_test_2019, X_train_s_2019, y_train_2019)
+results_gs = pd.DataFrame(gridSearch_2019.cv_results_)
+
+# Evaluating Neural network results with grid search best estimators values
+rSquare = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', X_test_s_2019,  y_test_2019, X_train_s_2019, y_train_2019)
+

@@ -1,0 +1,386 @@
+####################################################################
+# 4.1.4 Clustering
+####################################################################
+
+n_pc = 2
+pca_2019 = PCA(n_components = n_pc).fit(X_s_2019)
+Xp_2019_2Comp = pca_2019.transform(X_s_2019)
+
+# Create an instance (object) of the KMeans class with the parameters
+# initialized (cluster count 2)
+km_2019 = KMeans(n_clusters=2, random_state=1234)
+# Build a model.
+km_2019 = km_2019.fit_predict(Xp_2019_2Comp)
+
+silhouette_avg = silhouette_score(Xp_2019_2Comp, km_2019)
+print('Silhouette Score:', silhouette_avg)
+
+# Splitting dataset into two clusters
+c0_2019 = df_merged2019[km_2019 == 0]
+c1_2019 = df_merged2019[km_2019 == 1]
+c0_2019.shape 
+c1_2019.shape
+
+####################################################################
+# 4.1.4.1 Analyzing Cluster 0
+####################################################################
+
+plt.scatter(Xp_2019_2Comp[:, 0], Xp_2019_2Comp[:, 1], c=km_2019, s=50, cmap='viridis')
+plt.show()
+
+X_C02019 = c0_2019.loc[:, c0_2019.columns != 'Sale Price']
+y_C02019 = c0_2019[['Sale Price']].values.ravel()
+fn_C02019 = X_C02019.columns
+
+#Scaling the variables
+scaler = StandardScaler()
+scaler.fit(X_C02019)
+X_C0s_2019 = scaler.transform(X_C02019)
+
+####################################################################
+# 4.1.4.1.1  Building Models Wth Default Parameters for Cluster 0
+####################################################################
+
+# Divide the scaled dataset into training and testing data
+X_train_C0s_2019, X_test_C0s_2019, y_train_C02019, y_test_C02019 = train_test_split(X_C0s_2019, y_C02019, test_size =.30 ,random_state=1234) 
+
+# Divide the unscaled dataset into training and testing data.
+X_train_C02019, X_test_C02019, y_train_C02019, y_test_C02019 = train_test_split(X_C02019, y_C02019, test_size =.30, random_state=1234) 
+
+# Decision Tree Regressor
+dtr_C02019 = DecisionTreeRegressorModel(X_test_C02019, y_test_C02019, X_train_C02019, y_train_C02019)
+# Random Forest Regressor
+rfr_C02019 = RandomForestRegressorModel(X_test_C02019, y_test_C02019, X_train_C02019, y_train_C02019)
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15 X_test_C02019, y_test_C02019, X_train_C02019, y_train_C02019)
+
+# Gradient Boosting Regression
+grbr_C02019 = GradientBoostingRegressorModel(X_test_C02019, y_test_C02019, X_train_C02019, y_train_C02019)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_test_C02019, y_test_C02019, X_train_C02019, y_train_C02019))
+
+# SVM Regression
+svmr_C02019 = SVMRegressorModel('linear', 10, 0.01, X_test_C0s_2019, y_test_C02019, X_train_C0s_2019, y_train_C02019)
+# NN Regression
+# Neural network with default parameters
+NeuralNetworkRegressorModel(X_test_C0s_2019, y_test_C02019, X_train_C0s_2019, y_train_C02019)
+
+# Optimizing the NN Model using Hyper Parameters Tuning Using Grid Search
+gridSearch_2019 = FindNeuralNetworkParam_GridSearch(X_test_C0s_2019, y_test_C02019, X_train_C0s_2019, y_train_C02019)
+results_gs = pd.DataFrame(gridSearch_2019.cv_results_)
+
+# Evaluating Neural network results with grid search best estimator values
+rSquare = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', X_test_C0s_2019, y_test_C02019, X_train_C0s_2019, y_train_C02019)
+
+
+####################################################################
+# 4.1.4.1.2 Feature Selection for cluster 0
+####################################################################
+
+####################################################################
+# 4.1.4.1.2.1 Feature Selection Using Random Forest Regressor
+####################################################################
+
+# Find the significant features for Pierce County with their importance values.
+importances = rfr_C02019.feature_importances_
+np.sum(importances)
+plt.barh(fn_C02019, importances)
+
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_C02019, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+df_importance_top15 = df_importances.head(11)
+plt.barh(df_importance_top15.index, df_importance_top15.importance_value)
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=RandomForestRegressor(), threshold= 0.015)
+X_C0_reduced = selector.fit_transform(X_C02019, y_C02019)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_C02019):
+    if i: selected_features.append(j)
+print(f'Selected features for Random Forest Regressor are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_C0_reduced_train, X_C0_reduced_test, y_C0_reduced_train, y_C0_reduced_test \
+       = train_test_split(X_C0_reduced, y_C02019, test_size =.3, random_state=1234)
+
+RandomForestRegressorModel(X_C0_reduced_test, y_C0_reduced_test, X_C0_reduced_train, y_C0_reduced_train)
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_C0_reduced_test, y_C0_reduced_test, X_C0_reduced_train, y_C0_reduced_train)
+
+
+####################################################################
+# 4.1.4.1.2.2 Feature Selection Using Gradient Boosting
+####################################################################
+
+# Find the significant features for Pierce County with their importance values.
+importances = grbr_C02019.feature_importances_
+np.sum(importances)
+plt.barh(fn_C02019, importances)
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_C02019, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=GradientBoostingRegressor(), threshold=0.015)
+X_C0_reduced = selector.fit_transform(X_C02019, y_C02019)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_C02019):
+    if i: selected_features.append(j)
+print(f'Selected features for GBR are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_C0_reduced_train, X_C0_reduced_test, y_C0_reduced_train, y_C0_reduced_test \
+       = train_test_split(X_C0_reduced, y_C02019, test_size =.3, random_state=1234)
+
+GradientBoostingRegressorModel(X_C0_reduced_test, y_C0_reduced_test, X_C0_reduced_train, y_C0_reduced_train)
+
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_C0_reduced_test, y_C0_reduced_test, X_C0_reduced_train, y_C0_reduced_train)
+
+
+####################################################################
+# 4.1.4.1.3 PCA For Cluster 0
+####################################################################
+
+pca_prep = PCA().fit(X_C0s_2019)
+pca_prep.n_components_
+
+pca_prep.explained_variance_ratio_
+
+# Create a scree plot and find an "elbow" or an inflection point on the plot.
+plt.plot(pca_prep.explained_variance_ratio_)
+plt.xlabel('k number of components')
+plt.ylabel('Explained variance')
+plt.grid(True)
+plt.show()
+
+# From the scree plot, we choose k = 26  
+n_pc = 26
+pca_C02019 = PCA(n_components = n_pc).fit(X_C0s_2019)
+Xp_C02019 = pca_C02019.transform(X_C0s_2019)
+print(f'After PCA, we use {pca_C02019.n_components_} components.\n')
+
+# Split the data into training and testing subsets.
+Xp_train_C02019, Xp_test_C02019, yp_train_C02019, yp_test_C02019 = train_test_split(Xp_C02019, y_C02019, test_size =.2, 
+                                    random_state = 1234)
+
+# Create  random forest models using the transformed data. 
+rfr_C02019 = RandomForestRegressorModel(Xp_test_C02019, yp_test_C02019, Xp_train_C02019, yp_train_C02019)
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, Xp_test_C02019, yp_test_C02019, Xp_train_C02019, yp_train_C02019)
+
+
+# For Gradient Boosting 
+gbr_C02019 = GradientBoostingRegressorModel(Xp_test_C02019, yp_test_C02019, Xp_train_C02019, yp_train_C02019)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, Xp_test_C02019, yp_test_C02019, Xp_train_C02019, yp_train_C02019)
+
+# SVM Regression
+svmr_C02019 = SVMRegressorModel('linear', 10, 0.01, Xp_test_C02019, yp_test_C02019, Xp_train_C02019, yp_train_C02019)
+
+# For Neural Network
+# Neural Network models using the transformed data. 
+NeuralNetworkRegressorModel(Xp_test_C02019, yp_test_C02019, Xp_train_C02019, yp_train_C02019)
+
+# Neural Network models with Optimized Parameters Values and transformed data. 
+rSquare = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', Xp_test_C02019, yp_test_C02019, Xp_train_C02019, yp_train_C02019)
+
+
+####################################################################
+# 4.1.4.2 Analyzing Cluster 1
+####################################################################
+
+X_C12019 = c1_2019.loc[:, c1_2019.columns != 'Sale Price']
+y_C12019 = c1_2019[['Sale Price']].values.ravel()
+fn_C12019 = X_C12019.columns
+
+#Scaling the variables
+scaler = StandardScaler()
+scaler.fit(X_C12019)
+X_C1s_2019 = scaler.transform(X_C12019)
+
+
+# Divide the dataset into training and testing data.
+# Divide the scaled dataset into training and testing data
+X_train_C1s_2019, X_test_C1s_2019, y_train_C12019, y_test_C12019 = train_test_split(X_C1s_2019, y_C12019, test_size =.30,random_state=1234) 
+
+# Divide the unscaled dataset into training and testing data.
+X_train_C12019, X_test_C12019, y_train_C12019, y_test_C12019 = train_test_split(X_C12019, y_C12019, test_size =.30,random_state=1234) 
+
+####################################################################
+# 4.1.4.2.1  Building Models Wth Default Parameters for Cluster 1
+####################################################################
+
+# Decision Tree Regressor
+dtr_C12019 = DecisionTreeRegressorModel(X_test_C12019, y_test_C12019, X_train_C12019, y_train_C12019)
+# Random Forest Regressor
+rfr_C12019 = RandomForestRegressorModel(X_test_C12019, y_test_C12019, X_train_C12019, y_train_C12019)
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_test_C12019, y_test_C12019, X_train_C12019, y_train_C12019)
+
+# Gradient Boosting Regression
+grbr_C12019 = GradientBoostingRegressorModel(X_test_C12019, y_test_C12019, X_train_C12019, y_train_C12019)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_test_C12019, y_test_C12019, X_train_C12019, y_train_C12019)
+
+# SVM Regression
+svmr_C12019 = SVMRegressorModel('linear', 10, 0.01, X_test_C1s_2019, y_test_C12019, X_train_C1s_2019, y_train_C12019)
+
+# NN Regression
+# Neural network with default parameters
+NeuralNetworkRegressorModel(X_test_C1s_2019, y_test_C12019, X_train_C1s_2019, y_train_C12019)
+
+# Optimizing the NN Model using Hyper Parameters Tuning Using Grid Search
+gridSearch_2019 = FindNeuralNetworkParam_GridSearch(X_test_C1s_2019, y_test_C12019, X_train_C1s_2019, y_train_C12019)
+results_gs = pd.DataFrame(gridSearch_2019.cv_results_)
+
+# Evaluating Neural network results with grid search best estimators values
+rSquare = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', X_test_C1s_2019, y_test_C12019, X_train_C1s_2019, y_train_C12019)
+
+
+####################################################################
+# 4.1.4.2.2 Feature Selection for cluster 1
+####################################################################
+
+####################################################################
+# 4.1.4.2.2.1 Feature Selection Using Random Forest Regressor
+####################################################################
+
+# Find the significant features for Pierce County with their importance values.
+importances = rfr_C12019.feature_importances_
+np.sum(importances)
+plt.barh(fn_C12019, importances)
+
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_C12019, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+df_importance_top15 = df_importances.head(11)
+plt.barh(df_importance_top15.index, df_importance_top15.importance_value)
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=RandomForestRegressor(), threshold= 0.015)
+X_C1_reduced = selector.fit_transform(X_C12019, y_C12019)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_C12019):
+    if i: selected_features.append(j)
+print(f'Selected features for Random Forest Regressor are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_C1_reduced_train, X_C1_reduced_test, y_C1_reduced_train, y_C1_reduced_test \
+       = train_test_split(X_C1_reduced, y_C12019, test_size =.3, random_state=1234)
+
+RandomForestRegressorModel(X_C1_reduced_test, y_C1_reduced_test, X_C1_reduced_train, y_C1_reduced_train)
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_C1_reduced_test, y_C1_reduced_test, X_C1_reduced_train, y_C1_reduced_train)
+
+
+####################################################################
+# 4.1.4.1.2.2 Feature Selection Using Gradient Boosting
+####################################################################
+
+# Find the significant features for Pierce County with their importance values.
+importances = grbr_C12019.feature_importances_
+np.sum(importances)
+plt.barh(fn_C12019, importances)
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_C12019, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=GradientBoostingRegressor(), threshold=0.015)
+X_C1_reduced = selector.fit_transform(X_C12019, y_C12019)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_C12019):
+    if i: selected_features.append(j)
+print(f'Selected features for GBR are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_C1_reduced_train, X_C1_reduced_test, y_C1_reduced_train, y_C1_reduced_test \
+       = train_test_split(X_C1_reduced, y_C12019, test_size =.3, random_state=1234)
+
+GradientBoostingRegressorModel(X_C1_reduced_test, y_C1_reduced_test, X_C1_reduced_train, y_C1_reduced_train)
+
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_C1_reduced_test, y_C1_reduced_test, X_C1_reduced_train, y_C1_reduced_train) 
+
+
+####################################################################
+# 4.1.4.2.3 PCA For Cluster 1
+####################################################################
+
+pca_prep = PCA().fit(X_C1s_2019)
+pca_prep.n_components_
+
+pca_prep.explained_variance_ratio_
+
+# Create a scree plot and find an "elbow" or an inflection point on the plot.
+plt.plot(pca_prep.explained_variance_ratio_)
+plt.xlabel('k number of components')
+plt.ylabel('Explained variance')
+plt.title('Scree Plot 2019 Cluster2')
+plt.grid(True)
+plt.show()
+
+# From the scree plot, we choose k = 26  
+n_pc = 26
+pca_C12019 = PCA(n_components = n_pc).fit(X_C1s_2019)
+Xp_C12019 = pca_C12019.transform(X_C1s_2019)
+print(f'After PCA, we use {pca_C12019.n_components_} components.\n')
+
+# Split the data into training and testing subsets.
+Xp_train_C12019, Xp_test_C12019, yp_train_C12019, yp_test_C12019 = train_test_split(Xp_C12019, y_C12019, test_size =.2, 
+                                    random_state = 1234)
+
+# Create  random forest models using the transformed data. 
+rfr_C12019 = RandomForestRegressorModel(Xp_test_C12019, yp_test_C12019, Xp_train_C12019, yp_train_C12019)
+
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, Xp_test_C12019, yp_test_C12019, Xp_train_C12019, yp_train_C12019)
+
+# For Gradient Boosting 
+gbr_C12019 = GradientBoostingRegressorModel(Xp_test_C12019, yp_test_C12019, Xp_train_C12019, yp_train_C12019)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, Xp_test_C12019, yp_test_C12019, Xp_train_C12019, yp_train_C12019)
+
+# For Neural Network
+# Neural Network models using the transformed data. 
+NeuralNetworkRegressorModel(Xp_test_C12019, yp_test_C12019, Xp_train_C12019, yp_train_C12019)
+
+# Neural Network models with Optimized Parameters Values and transformed data. 
+rSquare = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', Xp_test_C12019, yp_test_C12019, Xp_train_C12019, yp_train_C12019)  
+
+
+

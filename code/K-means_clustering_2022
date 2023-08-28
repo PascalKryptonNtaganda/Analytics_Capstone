@@ -1,0 +1,77 @@
+####################################################################
+# 4.2.4 Clustering
+####################################################################
+
+n_pc = 2
+pca_2022 = PCA(n_components = n_pc).fit(X_s_2022)
+Xp_2022_2Comp = pca_2022.transform(X_s_2022)
+
+# Create an instance (object) of the KMeans class with the parameters
+# initialized (cluster count 2)
+km_2022 = KMeans(n_clusters=2, random_state=1234)
+# Build a model.
+km_2022 = km_2022.fit_predict(Xp_2022_2Comp)
+
+silhouette_avg = silhouette_score(Xp_2022_2Comp, km_2022)
+print('Silhouette Score:', silhouette_avg)
+
+# Splitting dataset into two clusters
+c0_2022 = df_merged2022[km_2022 == 0]
+c1_2022 = df_merged2022[km_2022 == 1]
+c0_2022.shape
+c1_2022.shape
+plt.scatter(Xp_2022_2Comp[:, 0], Xp_2022_2Comp[:, 1], c=km_2022, s=50, cmap='viridis')
+plt.show()
+
+####################################################################
+# 4.2.4.1 Analyzing Cluster 0
+####################################################################
+
+X_C02022 = c0_2022.loc[:, c0_2022.columns != 'Sale Price']
+y_C02022 = c0_2022[['Sale Price']].values.ravel()
+fn_C02022 = X_C02022.columns
+
+#Scaling the variables
+scaler = StandardScaler()
+scaler.fit(X_C02022)
+X_C0s_2022 = scaler.transform(X_C02022)
+
+####################################################################
+# 4.2.4.1.1  Building Models Wth Default Parameters for Cluster 0
+####################################################################
+
+# Divide the scaled dataset into training and testing data
+X_train_C0s_2022, X_test_C0s_2022, y_train_C02022, y_test_C02022 = train_test_split(X_C0s_2022, y_C02022, test_size =.30,random_state=1234) 
+
+# Divide the dataset into training and testing data.
+X_train_C02022, X_test_C02022, y_train_C02022, y_test_C02022 = train_test_split(X_C02022, y_C02022, test_size =.30,random_state=1234) 
+
+# Decision Tree Regressor
+dtr_C02022 = DecisionTreeRegressorModel(X_test_C02022, y_test_C02022, X_train_C02022, y_train_C02022)
+# Random Forest Regressor
+rfr_C02022 = RandomForestRegressorModel(X_test_C02022, y_test_C02022, X_train_C02022, y_train_C02022)
+# Grid Seach for best Random Forest Regressor
+FindRandomForestRegressorParam_GridSearch(X_test_C02022, y_test_C02022, X_train_C02022, y_train_C02022)
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_test_C02022, y_test_C02022, X_train_C02022, y_train_C02022)
+# Gradient Boosting Regression
+grbr_C02022 = GradientBoostingRegressorModel(X_test_C02022, y_test_C02022, X_train_C02022, y_train_C02022)
+# Grid Seach for best Gradient Boosting
+FindGradientBoostingRegressorParam_GridSearch(X_test_C02022, y_test_C02022, X_train_C02022, y_train_C02022)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_test_C02022, y_test_C02022, X_train_C02022, y_train_C02022)
+# SVM Regression
+svmr_C02022 = SVMRegressorModel('linear', 10, 0.01, X_test_C0s_2022, y_test_C02022, X_train_C0s_2022, y_train_C02022)
+
+# NN Regression
+# Neural network with default parameters
+NeuralNetworkRegressorModel(X_test_C0s_2022, y_test_C02022, X_train_C0s_2022, y_train_C02022)
+
+# Optimizing the NN Model using Hyper Parameters Tuning Using Grid Search
+gridSearch_2019 = FindNeuralNetworkParam_GridSearch(X_test_C0s_2022, y_test_C02022, X_train_C0s_2022, y_train_C02022)
+results_gs = pd.DataFrame(gridSearch_2019.cv_results_)
+
+# Evaluating Neural network results with grid search best estimators values
+rSquare = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', X_test_C0s_2022, y_test_C02022, X_train_C0s_2022, y_train_C02022)
+

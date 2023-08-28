@@ -1,0 +1,614 @@
+####################################################################
+# Utility Functions
+####################################################################
+
+def DecisionTreeRegressorModel(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    dtr =  DecisionTreeRegressor(max_leaf_nodes = 500, max_features='auto', splitter='best', random_state = 0)
+    dtr_mean_score = np.mean(cross_val_score(dtr, X_train, y_train, cv=5))
+    print(f'Mean Score for Decision Tree: {dtr_mean_score:.4f}')
+    dtr.fit(X_train, y_train)
+    y_pred_dtr = dtr.predict(X_test)
+    mae = metrics.mean_absolute_error(y_test, y_pred_dtr)
+    mse = metrics.mean_squared_error(y_test,y_pred_dtr)
+    rmse = np.sqrt(mse)
+    print('**Performance Evaluations for Decision Tree**')
+    print(f'mae: {mae:.4f}')
+    print(f'R2 score from the Decision Tree model: {r2_score(y_test, y_pred_dtr):.2f}')
+    print (f'mse: {mse:.4f}')
+    print(f'rmse: {rmse:.4f}')
+    t_end = time.time()
+    print(f'Execution time for DTR: {t_end-t_start:.2f} seconds')
+    return dtr
+    
+def RandomForestRegressorModel(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    rfrm = RandomForestRegressor(random_state=1234) 
+    rfrm_mean_score = np.mean(cross_val_score(rfrm, X_train, y_train, cv=5))
+    print(f'Mean Score for RandomForest: {rfrm_mean_score:.4f}')
+    rfrm.fit(X_train, y_train)
+    y_pred_rfrm = rfrm.predict(X_test) 
+    rfrm_mean_score = np.mean(cross_val_score(rfrm, X_train, y_train, cv=5))
+    print(f'Mean Score for Random Forest: {rfrm_mean_score:.4f}')
+
+    # Calculate MSE (mean squared errors), RMSE (Root Mean Squred Error),and R^2 for errors.
+    mse = metrics.mean_squared_error(y_test,y_pred_rfrm)
+    rmse = np.sqrt(mse)
+    print('\n', '**Performance Evaluation for Random Forest Regressor**')
+    print (' mse: ', mse,'\n','rmse:', rmse)
+    print(f'R2 score from the Random Forest model: {r2_score(y_test, y_pred_rfrm):.2f}')
+    t_end = time.time()
+    print(f'Execution time for RFR: {t_end-t_start:.2f} seconds')
+    return rfrm
+    
+def GradientBoostingRegressorModel(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    gbr = GradientBoostingRegressor(random_state = 1234)
+    
+    gbr_mean_score = np.mean(cross_val_score(gbr, X_train, y_train, cv=5))
+    print(f'Mean Score for GradientBoosting: {gbr_mean_score:.4f}'
+    gbr.fit(X_train, y_train)
+    y_pred_gbr = gbr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_gbr)
+    print(print('**Performance Evaluations for Gradient Boosting**'))
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the Gradient Boosting model: {r2_score(y_test, y_pred_gbr):.2f}')
+    t_end = time.time()
+    print(f'Execution time for GBR: {t_end-t_start:.2f} seconds')
+    return gbr
+    
+def SVMRegressorModel(kernel_Value, C_Value, epsilon_value, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    svr = SVR(kernel=kernel_Value, C= C_Value, epsilon=epsilon_value)
+    svr_mean_score = np.mean(cross_val_score(svr, X_train, y_train, cv=5))
+    print(f'Mean Score for SVM: {svr_mean_score:.4f}')
+    
+    # Train the model
+    svr.fit(X_train, y_train)
+    # Generate some test data
+    #X_test = np.arange(0.0, 5.0, 0.01)[:, np.newaxis]
+    y_pred_svr = svr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_svr)
+    print('**Performance Evaluations for SVM Regressor**')
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the SVM model: {r2_score(y_test, y_pred_svr):.2f}')
+    t_end = time.time()
+    print(f'Execution time for SVM: {t_end-t_start:.2f} seconds')
+    return svr
+
+def NeuralNetworkRegressorModel(X_test, y_test, X_train, y_train):    
+    nnr = MLPRegressor(random_state=1234)
+    nnr_mean_score = np.mean(cross_val_score(nnr, X_train, y_train, cv=5))
+    print(f'Mean Score for Neural Network: {nnr_mean_score:.4f}')
+    nnr.fit(X_train,y_train)
+    y_pred_nn = nnr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the NN model: {r2_score(y_test, y_pred_nn):.2f}')
+    return nnr
+
+def NeuralNetworkModel_1Layer(hidden_layer_sizes, activationFunc, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    nnr = MLPRegressor(hidden_layer_sizes=(hidden_layer_sizes),
+                       max_iter=3000, activation=activationFunc, random_state=1234)
+    nnr.fit(X_train,y_train)
+    y_pred_nn = nnr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the NN model One Layer: {activationFunc} {hidden_layer_sizes} {r2_score(y_test, y_pred_nn):.2f}')
+    t_end = time.time()
+    print(f'Execution time for NNR_1L: {t_end-t_start:.2f} seconds')
+
+def NeuralNetworkModel_2Layer(hidden_layer_sizes, hidden_layer_2, activationFunc, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    model = MLPRegressor(hidden_layer_sizes=(hidden_layer_sizes, hidden_layer_2), max_iter=1000,  activation=activationFunc, random_state=0)
+    model.fit(X_train, y_train)
+    y_pred_nn = model.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the NN model Three Layers: {activationFunc} {hidden_layer_sizes} {hidden_layer_2} {r2_score(y_test, y_pred_nn):.2f}')
+    t_end = time.time()
+    print(f'Execution time for NNR_2L: {t_end-t_start:.2f} seconds')
+    
+
+def NeuralNetworkModel_3Layer(hidden_layer_sizes, hidden_layer_2, hidden_layer_3, activationFunc,  X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    model = MLPRegressor(hidden_layer_sizes=(hidden_layer_sizes, hidden_layer_2, hidden_layer_3), max_iter=1000, 
+                         activation=activationFunc, random_state=0)
+    model.fit(X_train, y_train)
+    y_pred_nn = model.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the NN model Two Layers: {activationFunc} {hidden_layer_sizes} {hidden_layer_2} {hidden_layer_3} {r2_score(y_test, y_pred_nn):.2f}')
+    t_end = time.time()
+    print(f'Execution time for NNR_2L: {t_end-t_start:.2f} seconds')
+    
+ 
+def FindNeuralNetworkParam_GridSearch(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    r2_scorer = make_scorer(r2_score)
+    param_grid = {
+        'hidden_layer_sizes': [(40), (50), (100), (150), (50, 40), (100, 50), (150, 100),
+                               (50, 40, 10), (50, 40, 20), (50, 40, 30), (50, 40, 40)],
+        'activation': ['relu'],  # Activation function for hidden layers
+        'max_iter': [4000,5000]
+    }
+
+    nnm_r = MLPRegressor()
+    grid_src = GridSearchCV(estimator= nnm_r, param_grid = param_grid, cv=5, scoring=r2_scorer)
+    grid_src.fit(X_train,y_train)
+    t_end = time.time()
+    
+    print('\n\n **Report**')
+    print("Best Parameters: ", grid_src.best_params_)
+    print("Best Mean Test R-squared Score: ", grid_src.best_score_)
+    print(f'The best estimator: {grid_src.best_estimator_}')
+    print(f'The best parameters:\n {grid_src.best_params_}')
+    print(f'The best score: {grid_src.best_score_:.4f}')
+    print(f'Total run time for GridSearchCV: {(t_end-t_start):.2f} seconds')
+    # Check the details of search
+    return pd.DataFrame(grid_src.cv_results_)
+
+def RandomForestRegressorModel_WithParams(nEstimator, minSamplesSplit, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    rfrm = RandomForestRegressor(n_estimators=nEstimator, min_samples_split=minSamplesSplit, random_state=1234)
+    rfrm_mean_score = np.mean(cross_val_score(rfrm, X_train, y_train, cv=5))
+    print(f'Mean Score for RandomForest: {rfrm_mean_score:.4f}')
+    
+    rfrm.fit(X_train, y_train)
+    y_pred_rfrm = rfrm.predict(X_test)
+    # Calculate MSE (mean squared errors), RMSE (Root Mean Squred Error),and R^2 for errors.
+    mse = metrics.mean_squared_error(y_test,y_pred_rfrm)
+    mape = np.mean(np.abs((y_test - y_pred_rfrm)/y_test))*100
+    rmse = np.sqrt(mse)
+
+    print('\n', '**Performance Evaluation for Random Forest Regressor**')
+    print (' mse: ', mse,'\n','rmse:', rmse)
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the Random Forest model: {r2_score(y_test, y_pred_rfrm):.2f}')
+    t_end = time.time()
+    print(f'Execution time for RFR: {t_end-t_start:.2f} seconds')
+    return rfrm
+
+def FindRandomForestRegressorParam_GridSearch(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    r2_scorer = make_scorer(r2_score)
+    param_grid = {
+                'n_estimator':[500, 750, 1000, 1500],
+                'min_samples_split': [5, 10, 15, 20], 
+             }
+    rfrm = RandomForestRegressor(random_state = 1234)
+    grid_src = GridSearchCV(estimator= rfrm, param_grid = param_grid, cv=5, scoring=r2_scorer)
+    grid_src.fit(X_train,y_train)
+    t_end = time.time()
+    
+    print('\n\n **Report**')
+    print("Best Parameters: ", grid_src.best_params_)
+    print("Best Mean Test R-squared Score: ", grid_src.best_score_)
+    print(f'The best estimator: {grid_src.best_estimator_}')
+    print(f'The best parameters:\n {grid_src.best_params_}')
+    print(f'The best score: {grid_src.best_score_:.4f}')
+    print(f'Total run time for GridSearchCV: {(t_end-t_start):.2f} seconds')
+    # Check the details of search
+    return pd.DataFrame(grid_src.cv_results_)
+
+def GradientBoostingRegressorModel_WithParams(nEstimator, minSamplesSplit, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    gbr = GradientBoostingRegressor(n_estimators=nEstimator, min_samples_split=minSamplesSplit)
+    gbr_mean_score = np.mean(cross_val_score(gbr, X_train, y_train, cv=5))
+    print(f'Mean Score for GradientBoostingWithParams: {gbr_mean_score:.4f}')
+    
+    gbr.fit(X_train, y_train)
+    y_pred_gbr = gbr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_gbr)
+    mape = np.mean(np.abs((y_test - y_pred_gbr)/y_test))*100
+    print(print('**Performance Evaluations for Gradient Boosting**'))
+    print(' mse: ', mse,'\n')
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the Gradient Boosting model WithParams: {r2_score(y_test, y_pred_gbr):.2f}')
+    t_end = time.time()
+    print(f'Execution time for GBR: {t_end-t_start:.2f} seconds')
+    return gbr
+
+def FindGradientBoostingRegressorParam_GridSearch(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    r2_scorer = make_scorer(r2_score)
+    param_grid = {
+                'n_estimator':[500, 750, 1000, 1500],
+                'min_samples_split': [5, 10, 15, 20], 
+             }
+    gbr = GradientBoostingRegressor(random_state = 1234)
+    grid_src = GridSearchCV(estimator= gbr, param_grid = param_grid, cv=5, scoring=r2_scorer)
+    grid_src.fit(X_train,y_train)
+    t_end = time.time()
+    
+    print('\n\n **Report**')
+    print("Best Parameters: ", grid_src.best_params_)
+    print("Best Mean Test R-squared Score: ", grid_src.best_score_)
+    print(f'The best estimator: {grid_src.best_estimator_}')
+    print(f'The best parameters:\n {grid_src.best_params_}')
+    print(f'The best score: {grid_src.best_score_:.4f}')
+    print(f'Total run time for GridSearchCV: {(t_end-t_start):.2f} seconds')
+    # Check the details of search
+    return pd.DataFrame(grid_src.cv_results_)
+
+def AnalyzingDatasets(df):        
+    ## show the first five rows of the Appraisal dataset
+    print("First 5 rows of the dataset:")
+    print(df.head())
+
+    # Check the data types of each column
+    print("Data types:")
+    print(df.dtypes)
+
+    # Check the number of missing values in each column
+    print("Missing values:")
+    print(df.isnull().sum())
+    df.info()
+
+    # Get the summary statistics of numeric variables (appraisal dataset)
+    print("Summary statistics:")
+    print(df.describe())
+
+    # Distinct Count & frequency of nominal variables
+    df.nunique()
+
+    for colName in df.columns:
+        print("UniqueValues for " + colName)
+        print(df[colName].value_counts())
+    
+    #null values present in the Appraisal dataset
+    df.isnull().sum().sort_values(ascending=False)
+
+
+def DetermineCorrelatedVariables(df):
+    df_numeric = df.select_dtypes(include=np.number)
+    corrMatrix = df_numeric.corr()
+    threshold = 0.7
+    highly_correlated_variables = []
+
+    # Iterate through each column in the correlation matrix
+    for i in range(len(df.columns)):
+        for j in range(i + 1, len(corrMatrix.columns)):
+            if abs(corrMatrix.iloc[i, j]) >= threshold:
+                # Append the names of highly correlated variables to the list
+                variable_i = corrMatrix.columns[i]
+                variable_j = corrMatrix.columns[j]
+                highly_correlated_variables.append((variable_i, variable_j))
+
+    return highly_correlated_variables
+
+    
+def CalculateAverageSchoolScore(dfMergedRow, schoolData):
+    schoolRadius = 2*5280   # schools in 2 mile (5280 feet) radius
+    dfMergedX = dfMergedRow['X']
+    dfMergedY = dfMergedRow['Y']
+    zipCode = dfMergedRow['ZipCode']
+    
+    filteredSchoolData = schoolData[(schoolData['X_COORD'] <= dfMergedX + schoolRadius) 
+                               & (schoolData['X_COORD'] >= dfMergedX - schoolRadius) 
+                               & (schoolData['Y_COORD'] <= dfMergedY + schoolRadius) 
+                               & (schoolData['Y_COORD'] >= dfMergedY - schoolRadius)
+                               & (schoolData['ZIP'] == zipCode)]
+    if len(filteredSchoolData) == 0:
+        return 0
+    else:
+        return filteredSchoolData["score"].mean()
+
+
+Statement 2 Code
+
+def DecisionTreeRegressorModel(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    dtr =  DecisionTreeRegressor(max_leaf_nodes = 500, max_features='auto', splitter='best', random_state = 0)
+    dtr_mean_score = np.mean(cross_val_score(dtr, X_train, y_train, cv=5))
+    print(f'Mean Score for Decision Tree: {dtr_mean_score:.4f}')
+    
+    dtr.fit(X_train, y_train)
+    y_pred_dtr = dtr.predict(X_test)
+
+    mae = metrics.mean_absolute_error(y_test, y_pred_dtr)
+    mse = metrics.mean_squared_error(y_test,y_pred_dtr)
+    rmse = np.sqrt(mse)
+    print('**Performance Evaluations for Decision Tree**')
+    print(f'mae: {mae:.4f}')
+    print(f'R2 score from the Decision Tree model: {r2_score(y_test, y_pred_dtr):.2f}')
+    print (f'mse: {mse:.4f}')
+    print(f'rmse: {rmse:.4f}')
+    t_end = time.time()
+    print(f'Execution time for DTR: {t_end-t_start:.2f} seconds')
+    return dtr
+    
+def RandomForestRegressorModel(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    rfrm = RandomForestRegressor(random_state=1234)
+    rfrm_mean_score = np.mean(cross_val_score(rfrm, X_train, y_train, cv=5))
+    print(f'Mean Score for RandomForest: {rfrm_mean_score:.4f}')
+    
+    rfrm.fit(X_train, y_train)
+    y_pred_rfrm = rfrm.predict(X_test)
+    # Calculate MSE (mean squared errors), RMSE (Root Mean Squred Error),and R^2 for errors.
+    mse = metrics.mean_squared_error(y_test,y_pred_rfrm)
+    mape = np.mean(np.abs((y_test - y_pred_rfrm)/y_test))*100
+    rmse = np.sqrt(mse)
+
+    print('\n', '**Performance Evaluation for Random Forest Regressor**')
+    print (' mse: ', mse,'\n','rmse:', rmse)
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the Random Forest model: {r2_score(y_test, y_pred_rfrm):.2f}')
+    t_end = time.time()
+    print(f'Execution time for RFR: {t_end-t_start:.2f} seconds')
+    return rfrm
+
+def RandomForestRegressorModel_WithParams(nEstimator, minSamplesSplit, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    rfrm = RandomForestRegressor(n_estimators=nEstimator, min_samples_split=minSamplesSplit, random_state=1234)
+    rfrm_mean_score = np.mean(cross_val_score(rfrm, X_train, y_train, cv=5))
+    print(f'Mean Score for RandomForest: {rfrm_mean_score:.4f}')
+    
+    rfrm.fit(X_train, y_train)
+    y_pred_rfrm = rfrm.predict(X_test)
+    # Calculate MSE (mean squared errors), RMSE (Root Mean Squred Error),and R^2 for errors.
+    mse = metrics.mean_squared_error(y_test,y_pred_rfrm)
+    mape = np.mean(np.abs((y_test - y_pred_rfrm)/y_test))*100
+    rmse = np.sqrt(mse)
+
+    print('\n', '**Performance Evaluation for Random Forest Regressor**')
+    print (' mse: ', mse,'\n','rmse:', rmse)
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the Random Forest model: {r2_score(y_test, y_pred_rfrm):.2f}')
+    t_end = time.time()
+    print(f'Execution time for RFR: {t_end-t_start:.2f} seconds')
+    return rfrm
+
+def FindRandomForestRegressorParam_GridSearch(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    r2_scorer = make_scorer(r2_score)
+    param_grid = {
+                'n_estimator':[500, 750, 1000, 1500],
+                'min_samples_split': [5, 10, 15, 20], 
+             }
+    rfrm = RandomForestRegressor(random_state = 1234)
+    grid_src = GridSearchCV(estimator= rfrm, param_grid = param_grid, cv=5, scoring=r2_scorer)
+    grid_src.fit(X_train,y_train)
+    t_end = time.time()
+    
+    print('\n\n **Report**')
+    print("Best Parameters: ", grid_src.best_params_)
+    print("Best Mean Test R-squared Score: ", grid_src.best_score_)
+    print(f'The best estimator: {grid_src.best_estimator_}')
+    print(f'The best parameters:\n {grid_src.best_params_}')
+    print(f'The best score: {grid_src.best_score_:.4f}')
+    print(f'Total run time for GridSearchCV: {(t_end-t_start):.2f} seconds')
+    # Check the details of search
+    return pd.DataFrame(grid_src.cv_results_)
+    
+def GradientBoostingRegressorModel(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    gbr = GradientBoostingRegressor()
+    gbr_mean_score = np.mean(cross_val_score(gbr, X_train, y_train, cv=5))
+    print(f'Mean Score for GradientBoosting: {gbr_mean_score:.4f}')
+    
+    gbr.fit(X_train, y_train)
+    y_pred_gbr = gbr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_gbr)
+    mape = np.mean(np.abs((y_test - y_pred_gbr)/y_test))*100
+    print(print('**Performance Evaluations for Gradient Boosting**'))
+    print(' mse: ', mse,'\n')
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the Gradient Boosting model: {r2_score(y_test, y_pred_gbr):.2f}')
+    t_end = time.time()
+    print(f'Execution time for GBR: {t_end-t_start:.2f} seconds')
+    return gbr
+
+def GradientBoostingRegressorModel_WithParams(nEstimator, minSamplesSplit, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    gbr = GradientBoostingRegressor(n_estimators=nEstimator, min_samples_split=minSamplesSplit)
+    gbr_mean_score = np.mean(cross_val_score(gbr, X_train, y_train, cv=5))
+    print(f'Mean Score for GradientBoosting: {gbr_mean_score:.4f}')
+    
+    gbr.fit(X_train, y_train)
+    y_pred_gbr = gbr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_gbr)
+    mape = np.mean(np.abs((y_test - y_pred_gbr)/y_test))*100
+    print(print('**Performance Evaluations for Gradient Boosting**'))
+    print(' mse: ', mse,'\n')
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the Gradient Boosting model: {r2_score(y_test, y_pred_gbr):.2f}')
+    t_end = time.time()
+    print(f'Execution time for GBR: {t_end-t_start:.2f} seconds')
+    return gbr
+
+def FindGradientBoostingRegressorParam_GridSearch(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    r2_scorer = make_scorer(r2_score)
+    param_grid = {
+                'n_estimator':[500, 750, 1000, 1500],
+                'min_samples_split': [5, 10, 15, 20], 
+             }
+    gbr = GradientBoostingRegressor(random_state = 1234)
+    grid_src = GridSearchCV(estimator= gbr, param_grid = param_grid, cv=5, scoring=r2_scorer)
+    grid_src.fit(X_train,y_train)
+    t_end = time.time()
+    
+    print('\n\n **Report**')
+    print("Best Parameters: ", grid_src.best_params_)
+    print("Best Mean Test R-squared Score: ", grid_src.best_score_)
+    print(f'The best estimator: {grid_src.best_estimator_}')
+    print(f'The best parameters:\n {grid_src.best_params_}')
+    print(f'The best score: {grid_src.best_score_:.4f}')
+    print(f'Total run time for GridSearchCV: {(t_end-t_start):.2f} seconds')
+    # Check the details of search
+    return pd.DataFrame(grid_src.cv_results_)
+    
+def SVMRegressorModel(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    svr = SVR(kernel='rbf', C=1.0, epsilon=0.2)
+    svr_mean_score = np.mean(cross_val_score(svr, X_train, y_train, cv=5))
+    print(f'Mean Score for SVM: {svr_mean_score:.4f}')
+    
+    # Train the model
+    svr.fit(X_train, y_train)
+    y_pred_svr = svr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_svr)
+    mape = np.mean(np.abs((y_test - y_pred_svr)/y_test))*100
+    print('**Performance Evaluations for SVM Regressor**')
+    print(' mse: ', mse,'\n')
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the SVM model: {r2_score(y_test, y_pred_svr):.2f}')
+    t_end = time.time()
+    print(f'Execution time for SVM: {t_end-t_start:.2f} seconds')
+    return svr
+
+def NeuralNetworkRegressorModel(X_test, y_test, X_train, y_train):    
+    nnr = MLPRegressor(random_state=1234)
+    
+    nnr_mean_score = np.mean(cross_val_score(nnr, X_train, y_train, cv=5))
+    print(f'Mean Score for Neural Network: {nnr_mean_score:.4f}')
+    
+    nnr.fit(X_train,y_train)
+    y_pred_nn = nnr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the NN model: {r2_score(y_test, y_pred_nn):.2f}')
+    return nnr
+
+
+def NeuralNetworkModel_1Layer(hidden_layer_sizes, activationFunc, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    nnr = MLPRegressor(hidden_layer_sizes=(hidden_layer_sizes),
+                       max_iter=3000, activation=activationFunc, random_state=1234)
+    nnr.fit(X_train,y_train)
+    y_pred_nn = nnr.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    mape = np.mean(np.abs((y_test - y_pred_nn)/y_test))*100
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the NN model One Layer: {activationFunc} {hidden_layer_sizes} {r2_score(y_test, y_pred_nn):.2f}')
+    t_end = time.time()
+    print(f'Execution time for NNR_1L: {t_end-t_start:.2f} seconds')
+
+def NeuralNetworkModel_2Layer(hidden_layer_sizes, hidden_layer_2, activationFunc, X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    model = MLPRegressor(hidden_layer_sizes=(hidden_layer_sizes, hidden_layer_2), max_iter=1000, 
+                         activation=activationFunc, random_state=0)
+    model.fit(X_train, y_train)
+    y_pred_nn = model.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    mape = np.mean(np.abs((y_test - y_pred_nn)/y_test))*100
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print (f'mape: {mape:.4f}')
+    print(f'R2 score from the NN model Two Layers: {activationFunc} {hidden_layer_sizes} {hidden_layer_2} {r2_score(y_test, y_pred_nn):.2f}')
+    t_end = time.time()
+    print(f'Execution time for NNR_2L: {t_end-t_start:.2f} seconds')
+
+def NeuralNetworkModel_3Layer(hidden_layer_sizes, hidden_layer_2, hidden_layer_3, activationFunc, 
+                                  X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    model = MLPRegressor(hidden_layer_sizes=(hidden_layer_sizes, hidden_layer_2, hidden_layer_3), max_iter=1000, 
+                         activation=activationFunc, random_state=0)
+    
+    nnr_mean_score = np.mean(cross_val_score(model, X_train, y_train, cv=5))
+    print(f'Mean Score for Neural Network: {nnr_mean_score:.4f}')
+    
+    model.fit(X_train, y_train)
+    y_pred_nn = model.predict(X_test)
+    mse = metrics.mean_squared_error(y_test,y_pred_nn)
+    print('**Performance Evaluations for Neural Network**')
+    print(' mse: ', mse,'\n')
+    print(f'R2 score from the NN model Two Layers: {activationFunc} {hidden_layer_sizes} {hidden_layer_2} {hidden_layer_3} {r2_score(y_test, y_pred_nn):.2f}')
+    t_end = time.time()
+    print(f'Execution time for NNR_2L: {t_end-t_start:.2f} seconds')
+    
+def FindNeuralNetworkParam_GridSearch(X_test, y_test, X_train, y_train):
+    t_start = time.time()
+    r2_scorer = make_scorer(r2_score)
+    param_grid = {
+                'hidden_layer_sizes':[(20), (30)],
+                'activation': ['relu'], 
+                'max_iter': [4000,5000]
+             }
+    nnm_r = MLPRegressor()
+    grid_src = GridSearchCV(estimator= nnm_r, param_grid = param_grid, cv=5, scoring=r2_scorer)
+    grid_src.fit(X_train,y_train)
+    t_end = time.time()
+    
+    print('\n\n **Report**')
+    print("Best Parameters: ", grid_src.best_params_)
+    print("Best Mean Test R-squared Score: ", grid_src.best_score_)
+    print(f'The best estimator: {grid_src.best_estimator_}')
+    print(f'The best parameters:\n {grid_src.best_params_}')
+    print(f'The best score: {grid_src.best_score_:.4f}')
+    print(f'Total run time for GridSearchCV: {(t_end-t_start):.2f} seconds')
+    # Check the details of search
+    return pd.DataFrame(grid_src.cv_results_)
+
+def AnalyzingDatasets(df):
+    ## show the first five rows of the Appraisal dataset
+    print("First 5 rows of the dataset:")
+    print(df.head())
+
+    # Check the data types of each column
+    print("Data types:")
+    print(df.dtypes)
+
+    # Check the number of missing values in each column
+    print("Missing values:")
+    print(df.isnull().sum())
+    df.info()
+
+    # Get the summary statistics of numeric variables (appraisal dataset)
+    print("Summary statistics:")
+    print(df.describe())
+
+    # Distinct Count & frequency of nominal variables
+    df.nunique()
+
+    for colName in df.columns:
+        print("UniqueValues for " + colName)
+        print(df[colName].value_counts())
+    
+    #null values present in the Appraisal dataset
+    df.isnull().sum().sort_values(ascending=False)
+
+def DetermineCorrelatedVariables(df):
+    df_numeric = df.select_dtypes(include=np.number)
+    corrMatrix = df_numeric.corr()
+    threshold = 0.7
+    highly_correlated_variables = []
+
+    # Iterate through each column in the correlation matrix
+    for i in range(len(df.columns)):
+        for j in range(i + 1, len(corrMatrix.columns)):
+            if abs(corrMatrix.iloc[i, j]) >= threshold:
+                # Append the names of highly correlated variables to the list
+                variable_i = corrMatrix.columns[i]
+                variable_j = corrMatrix.columns[j]
+                highly_correlated_variables.append((variable_i, variable_j))
+
+    return highly_correlated_variables
+
+    
+def CalculateAverageSchoolScore(dfMergedRow, schoolData):
+    schoolRadius = 2*5280   # schools in 2 mile (5280 feet) radius
+    dfMergedX = dfMergedRow['X']
+    dfMergedY = dfMergedRow['Y']
+    zipCode = dfMergedRow['ZipCode']
+    
+    filteredSchoolData = schoolData[(schoolData['X_COORD'] <= dfMergedX + schoolRadius) 
+                               & (schoolData['X_COORD'] >= dfMergedX - schoolRadius) 
+                               & (schoolData['Y_COORD'] <= dfMergedY + schoolRadius) 
+                               & (schoolData['Y_COORD'] >= dfMergedY - schoolRadius)
+                               & (schoolData['ZIP'] == zipCode)]
+    if len(filteredSchoolData) == 0:
+        return 0
+    else:
+        return filteredSchoolData["score"].mean()    
+    

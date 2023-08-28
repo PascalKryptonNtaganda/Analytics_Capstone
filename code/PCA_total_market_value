@@ -1,0 +1,50 @@
+####################################################################
+# 4.1.3 PCA
+####################################################################
+
+# Create an instance PCA and build the model using Xn.
+# We start from the same number of components as the number of original features.
+pca_prep = PCA().fit(X_s)
+pca_prep.n_components_
+
+# Consider the variances as the amount of information.  Drop components providing less information
+# (low variances)
+pca_prep.explained_variance_ratio_
+
+# Create a scree plot and find an "elbow" or an inflection point on the plot.
+plt.plot(pca_prep.explained_variance_ratio_)
+plt.xlabel('k number of components')
+plt.ylabel('Explained variance')
+plt.title('Scree Plot Market Value Data')
+plt.grid(True)
+plt.show()
+
+# From the scree plot, we choose k = 16 
+n_pc = 15
+pca = PCA(n_components = n_pc).fit(X_s)
+Xp = pca.transform(X_s)
+print(f'After PCA, we use {pca.n_components_} components.\n')
+
+# Split the data into training and testing subsets.
+
+Xp_train, Xp_test, yp_train, yp_test = train_test_split(Xp, y, test_size =.3, random_state = 1234)
+
+# Create  random forest models using the transformed data. 
+rfr_pca = RandomForestRegressorModel(Xp_test, yp_test, Xp_train, yp_train)
+# With Hyperparameters
+RandomForestModel_WithParams(750, 10, Xp_test, yp_test, Xp_train, yp_train)
+
+# For Gradient Boosting
+gbr_pca = GradientBoostingRegressorModel(Xp_test, yp_test, Xp_train, yp_train)
+# With Hyperparameters
+GradientBoostingModel_WithParams(750, 10, Xp_test, yp_test, Xp_train, yp_train)
+
+# SVM Regression
+svmr_2019 = SVMRegressorModel('linear', 10, 0.01, Xp_test, yp_test, Xp_train, yp_train)
+
+# Neural Network models using the transformed data. 
+NeuralNetworkRegressorModel(Xp_test, yp_test, Xp_train, yp_train)
+
+# Neural Network models with Optimized Parameters Values and transformed data. 
+rSquare = NeuralNetworkModel_3Layer(50, 50, 20,
+            'relu', Xp_test, yp_test,  Xp_train, yp_train)

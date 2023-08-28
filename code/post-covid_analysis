@@ -1,0 +1,135 @@
+####################################################################
+# 4.2 Analyzing Post-Covid (2022) Datasets
+####################################################################
+
+X_2022 = df_merged2022.loc[:, df_merged2022.columns != 'Sale Price']
+y_2022 = df_merged2022[['Sale Price']].values.ravel()
+fn_2022 = X_2022.columns
+
+#Scaling the variables
+scaler = StandardScaler()
+scaler.fit(X_2022)
+X_s_2022 = scaler.transform(X_2022)
+
+# Divide the scaled dataset into training and testing data
+X_train_s_2022, X_test_s_2022, y_train_2022, y_test_2022 = train_test_split(X_s_2022, y_2022, test_size =.30,random_state=1234) 
+
+# Divide the unscaled dataset into training and testing data.
+X_train_2022, X_test_2022, y_train_2022, y_test_2022 = train_test_split(X_2022, y_2022, test_size =.30,random_state=1234) 
+
+####################################################################
+# 4.2.1 Building Models Wth Default Parameters
+####################################################################
+
+# Decision Tree Regressor
+dtr_2022 = DecisionTreeRegressorModel(X_test_2022, y_test_2022, X_train_2022, y_train_2022)
+# Random Forest Regressor
+rfr_2022 = RandomForestRegressorModel(X_test_2022, y_test_2022, X_train_2022, y_train_2022)
+
+# Grid Seach for best Random Forest Regressor
+FindRandomForestRegressorParam_GridSearch(X_test_2022, y_test_2022, X_train_2022, y_train_2022)
+
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_test_2022, y_test_2022, X_train_2022, y_train_2022)
+# Gradient Boosting Regression
+gbr_2022 = GradientBoostingRegressorModel(X_test_2022, y_test_2022, X_train_2022, y_train_2022)
+
+# Grid Seach for best Gradient Boosting
+FindGradientBoostingRegressorParam_GridSearch(X_test_2022, y_test_2022, X_train_2022, y_train_2022)
+
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(500, 10, X_test_2022, y_test_2022, X_train_2022, y_train_2022)
+# SVM Regression
+svmr_2022 = SVMRegressorModel('linear', 10, 0.01, X_test_s_2022, y_test_2022, X_train_s_2022, y_train_2022)
+
+# NN Regression
+nnr_2022 = NeuralNetworkRegressorModel(X_test_s_2022, y_test_2022, X_train_s_2022, y_train_2022)
+
+# Optimizing the NN Model using Hyper Parameters Tuning Using Grid Search
+gridSearch_2022 = FindNeuralNetworkParam_GridSearch( X_test_s_2022, y_test_2022, X_train_s_2022, y_train_2022)
+results_gs = pd.DataFrame(gridSearch_2022.cv_results_)
+
+# Evaluating Neural network results with grid search best estimators values
+rSquare_2022 = NeuralNetworkModel_3Layer(50, 40, 20,
+            'relu', X_test_s_2022, y_test_2022, X_train_s_2022, y_train_2022)
+
+####################################################################
+# 4.2.2 Feature Selection 
+####################################################################
+
+####################################################################
+# 4.2.2.1 Feature Selection Using Random Forest Regressor
+####################################################################
+
+# Find the significant features for Pierce County Dataset with their importance values.
+importances = rfr_2022.feature_importances_
+np.sum(importances)
+plt.barh(fn_2022, importances)
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_2022, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+df_importance_top15 = df_importances.head(1)
+plt.barh(df_importance_top15.index, df_importance_top15.importance_value)
+
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=RandomForestRegressor(), threshold=0.015)
+X_reduced = selector.fit_transform(X_2022, y_2022)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_2022):
+    if i: selected_features.append(j)
+print(f'Selected features are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_reduced_train, X_reduced_test, y_reduced_train, y_reduced_test \
+       = train_test_split(X_reduced, y_2022, test_size =.3, random_state=1234)
+
+RandomForestRegressorModel(X_reduced_test, y_reduced_test, X_reduced_train, y_reduced_train)
+
+# With Hyperparameters for Random Forest
+RandomForestRegressorModel_WithParams(1000, 15, X_reduced_test, y_reduced_test, X_reduced_train, y_reduced_train)
+
+####################################################################
+# 4.2.2.2 Feature Selection Using Gradient Booster Regressor
+####################################################################
+
+# Find the significant features for Pierce County Data with their importance values.
+importances = gbr_2022.feature_importances_
+np.sum(importances)
+plt.barh(fn_2022, importances)
+# Draw a bar chart to see the sorted importance values with feature names.
+df_importances = pd.DataFrame(data=importances, index=fn_2022, columns=['importance_value'])
+df_importances.sort_values(by = 'importance_value', ascending=False, inplace=True)
+df_importances
+plt.barh(df_importances.index, df_importances.importance_value)
+
+# Build a model with a subset of those features.   
+selector = SelectFromModel(estimator=GradientBoostingRegressor(), threshold=0.015)
+X_reduced = selector.fit_transform(X_2022, y_2022)
+selector.threshold_ 
+selected_TF = selector.get_support()
+print(f'\n** {selected_TF.sum()} features are selected.')  
+
+# Show those selected features.
+selected_features = []
+for i,j in zip(selected_TF, fn_2022):
+    if i: selected_features.append(j)
+print(f'Selected features for 2022 GBR are:\n {selected_features}')
+
+# Build a model using reduced number of features
+X_reduced_train, X_reduced_test, y_reduced_train, y_reduced_test \
+       = train_test_split(X_reduced, y_2022, test_size =.3, random_state=1234)
+
+GradientBoostingRegressorModel(X_reduced_test, y_reduced_test, X_reduced_train, y_reduced_train)
+#With Hyperparameters for Gradient Boosting
+GradientBoostingRegressorModel_WithParams(750, 10, X_reduced_test, y_reduced_test, X_reduced_train, y_reduced_train)
+
+
+

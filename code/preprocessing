@@ -305,3 +305,345 @@ numericCorrelatedVariables = DetermineCorrelatedVariables(df_merged)
 print(numericCorrelatedVariables)  
 
 df_merged.info()
+
+####################################################################
+# 2. Datasets Preprocessing
+####################################################################
+
+# Analyzing Datasets
+print("Analyzing Appraisal Data Set")
+AnalyzingDatasets(df_appraisal)
+
+print("Analyzing Improvement Data Set")
+AnalyzingDatasets(df_improvement)
+
+print("Analyzing Improvement BuiltAs Data Set")
+AnalyzingDatasets(df_improvementBuiltAs)
+
+print("Analyzing Tax Account Data Set")
+AnalyzingDatasets(df_taxAccount)
+
+print("Analyzing AddressPoints Data Set")
+AnalyzingDatasets(df_Address_Points)
+
+print("Analyzing School Data Set")
+AnalyzingDatasets(df_school_Data)
+
+
+####################################################################
+# 2.1 Appraisal Dataset Preprocessing
+####################################################################
+
+# Filtering the dataset to only include Residential Properties
+appraisal_dfFiltered = df_appraisal[(df_appraisal['Appraisal Account Type'] == 'Residential')]
+appraisal_dfFiltered.info()
+appraisal_dfFiltered.isnull().sum().sort_values(ascending=False) 
+appraisal_dfFiltered.dtypes
+
+# Dropping the non-required columns which have more than 30% nulls, correlated and not informative
+appraisal_dfFiltered.drop(['Appraisal Account Type', 'Value Area ID', 'Business Name', 'Submerged Area Square Feet', 
+                           'Group Account Number', 'Land Economic Area', 'Latitude', 
+                           'Appraisal Date'] , axis=1, inplace=True)
+
+appraisal_dfFiltered['Waterfront Type'] = appraisal_dfFiltered['Waterfront Type'].apply(lambda x: 1 if not pd.isnull(x) else 0)
+appraisal_dfFiltered['View Quality'] = appraisal_dfFiltered['View Quality'].fillna('N/A')
+
+viewQualityOrd = {'View Quality': {'N/A':0, 'View Lim -':1,'View Lim':2,'View Lim +':3, 
+                    'View Good' :4,'View Good +':5, 'View Avg':6,'View Avg +':7,
+                      'View V-Good':8,'View V-Good +':9}}
+appraisal_dfFiltered = appraisal_dfFiltered.replace(viewQualityOrd)
+
+# Converting Parcel number and Appraisal Date Format
+appraisal_dfFiltered['Parcel Number']=(appraisal_dfFiltered['Parcel Number']).apply(str)
+
+numericCorrelatedVariables = DetermineCorrelatedVariables(appraisal_dfFiltered)
+print(numericCorrelatedVariables)
+
+# Dropping additional variables based on correlation analysis
+appraisal_dfFiltered.drop(['Land Depth', 'Land Gross Acres', 
+                           'Land Gross Square Feet', 'Land Width','Land Net Acres'] , axis=1, inplace=True)
+
+appraisal_dfFiltered.columns
+
+#Covert nominal variables into dummy
+df_appraisalFinal = pd.get_dummies(appraisal_dfFiltered, columns=['Utility Electric', 
+                 'Utility Sewer', 'Utility Water', 'Street Type'], drop_first=True)
+
+df_appraisalFinal.info()
+
+# Finding if there are duplicate parcel numbers in appraisal data set
+print([item for item, count in collections.Counter(df_appraisalFinal['Parcel Number']).items() if count > 1])
+
+
+####################################################################
+# 2.2 Improvement Dataset Preprocessing
+####################################################################
+
+# Filtering datset to consider only residential properties
+df_improvement = df_improvement[(df_improvement['Property Type'] == 'Residential')]
+
+# Dropping the non-required columns which have majority of nulls, highly correlated and not informative
+df_improvement.drop(['Mobile Home Serial Number', 'Mobile Home Total Length', 
+                   'Mobile Home Make', 'Neighborhood', 'Neighborhood Extension', 'Primary Occupancy Code', 
+                   'Primary Occupancy Description', 'Property Type' ] , axis=1, inplace=True)
+
+# Populating null values with 0
+df_improvement['Attic Finished Square Feet'] = df_improvement['Attic Finished Square Feet'].fillna(0)
+df_improvement['Basement Square Feet'] = df_improvement['Basement Square Feet'].fillna(0)
+df_improvement['Carport Square Feet'] = df_improvement['Carport Square Feet'].fillna(0)
+df_improvement['Balcony Square Feet'] = df_improvement['Balcony Square Feet'].fillna(0)
+df_improvement['Porch Square Feet'] = df_improvement['Porch Square Feet'].fillna(0)
+df_improvement['Attached Garage Square Feet'] = df_improvement['Attached Garage Square Feet'].fillna(0)
+df_improvement['Detached Garage Square Feet'] = df_improvement['Detached Garage Square Feet'].fillna(0)
+df_improvement['Fireplaces'] = df_improvement['Fireplaces'].fillna(0)
+
+
+df_improvement.isnull().sum().sort_values(ascending=False)
+df_improvement.info()
+
+# Removing rows with null values
+df_improvement =  df_improvement[~df_improvement['Condition'].isnull()]
+
+# Check the data types of each column
+print("Data types:")
+print(df_improvement.dtypes)
+
+# Converting Parcel number from Integer to String
+df_improvement['Parcel Number']=(df_improvement['Parcel Number']).apply(str)
+
+numericCorrelatedVariables = DetermineCorrelatedVariables(df_improvement)
+print(numericCorrelatedVariables)
+
+# Converting Ordinal Variables Condition and Quality to Numeric Variables
+conditionOrd = {'Condition': {'Uninhabitable':0, 'Extra Poor':1,'Very Poor':2,'Poor':3, 
+                      'low':4,'Fair':5, 'Average':6, 'Avg' : 6, 'Avg.':6,'Good':7, 'Excellent':8}}
+
+qualityOrd = {'Quality': {'Low':0, 'Low Plus':1,'Fair':2,'Fair Plus':3, 
+                    'Average' :4,'Average Plus':5, 'Good':6,'Good Plus':7,
+                      'Very Good':8,'Very Good Plus':9,'Excellent':10}}
+
+df_improvement = df_improvement.replace(conditionOrd)
+df_improvement = df_improvement.replace(qualityOrd)
+
+# Dropping the non-required columns highly correlated 
+df_improvement.drop(['Basement Garage Door', 'Square Feet', 'Basement Finished Square Feet', 
+                   'Net Square Feet' ] , axis=1, inplace=True)
+
+# Finding if there are duplicate parcel numbers in improvement data set
+print([item for item, count in collections.Counter(df_improvement['Parcel Number']).items() if count > 1])
+
+
+####################################################################
+# 2.3 ImprovementBuiltAs Dataset Preprocessing
+####################################################################
+
+df_improvementBuiltAs.info()
+df_improvementBuiltAs.isnull().sum().sort_values(ascending=False)
+
+df_improvementBuiltAs=  df_improvementBuiltAs[df_improvementBuiltAs['Year Built'] >= 2014]
+                               
+# Converting Parcel number from int to string
+df_improvementBuiltAs['Parcel Number']=(df_improvementBuiltAs['Parcel Number']).apply(str)
+
+
+# Populating Null values for Exterior with Not Applicable
+df_improvementBuiltAs['Exterior'] = df_improvementBuiltAs['Exterior'].fillna('Not Applicable')
+
+# Populating Null values for Interior with Not Applicable
+df_improvementBuiltAs['Interior'] = df_improvementBuiltAs['Interior'].fillna('Not Applicable')
+
+# Populating Null values for Roof Cover with Not Applicable
+df_improvementBuiltAs['Roof Cover'] = df_improvementBuiltAs['Roof Cover'].fillna('Not Applicable')
+
+df_improvementBuiltAs.info()
+df_improvementBuiltAs.isnull().sum().sort_values(ascending=False) 
+df_improvementBuiltAs.dtypes
+
+# Dropping coulmns with majority of nulls, non-informative $ highly correlated
+df_improvementBuiltAs.drop(['Built-As Number', 'Built-As ID','HVAC', 
+                    'Mobile Home Mode','Class Description', 'Class Code'] , axis=1, inplace=True)
+
+
+df_improvementBuiltAs =  df_improvementBuiltAs[~df_improvementBuiltAs['Physical Age'].isnull()]
+df_improvementBuiltAs = df_improvementBuiltAs[~df_improvementBuiltAs['Story Height'].isnull()]  
+
+df_improvementBuiltAs.drop(['HVAC Description', 
+                 'Exterior', 'Interior', 'Roof Cover'], axis=1, inplace=True)
+
+df_improvementBuiltAs =  df_improvementBuiltAs[~df_improvementBuiltAs['Bedrooms'].isnull()]
+df_improvementBuiltAs.drop(['Units'] , axis=1, inplace=True)
+
+df_improvementBuiltAs =  df_improvementBuiltAs[~df_improvementBuiltAs['Stories'].isnull()]
+df_improvementBuiltAs =  df_improvementBuiltAs[~df_improvementBuiltAs['Bathrooms'].isnull()]
+
+# Analyzing highly correlated variables
+numericCorrelatedVariables = DetermineCorrelatedVariables(df_improvementBuiltAs)
+print(numericCorrelatedVariables)
+
+# Dropping coulmnswhich are non informative and highly correlated
+df_improvementBuiltAs.drop(['Sprinkler Square Feet', 'Built-As Length', 'Built-As Width', 'Year Built',  
+                  'Adjusted Year Built'] , axis=1, inplace=True)
+
+# Finding if there are duplicate parcel numbers in improvement data set
+print([item for item, count in collections.Counter(df_improvementBuiltAs['Parcel Number']).items() if count > 1])
+df_improvementBuiltAs.isnull().sum().sort_values(ascending=False) 
+
+####################################################################
+# 2.4 TaxAccount Dataset Preprocessing
+####################################################################
+
+df_taxAccount.info()
+df_taxAccount.isnull().sum().sort_values(ascending=False)
+
+print("Data types:")
+print(df_taxAccount.dtypes)
+
+# Converting Parcel number from int to string
+df_taxAccount['Parcel Number']=(df_taxAccount['Parcel Number']).apply(str)
+
+# selecting the single family dwelling properties only 
+df_taxAccount =  df_taxAccount[df_taxAccount['Use Code'] == 1101]
+
+# considering properties only whose prior year market value is > 100K
+df_taxAccount =  df_taxAccount[(df_taxAccount['Total Market Value - Current Year'] >= 100000) &
+                               (df_taxAccount['Total Market Value - Current Year'] <= 30000000)]
+
+
+# Analyzing Correlated Varianles
+numericCorrelatedVariables = DetermineCorrelatedVariables(df_taxAccount)
+print(numericCorrelatedVariables)
+
+# Dropping variables highly correlated, non-informative and not required for analysis
+df_taxAccount.drop(['Account Type', 'Property Type', 'Site Address',
+                 'Use Code', 'Use Description', 'Tax Year - Prior', 'Tax Code Area - Prior Year', 
+                 'Exemption Type - Prior Year', 'Current Use Code - Prior Year', 
+                 'Land Value - Prior Year', 'Improvement Value - Prior Year',  
+                 'Taxable Value - Prior Year', 'Tax Year - Current', 'Tax Code Area - Current Year', 
+                 'Exemption Type - Current Year', 'Current Use Code - Current Year', 
+                 'Land Value - Current Year', 'Improvement Value - Current Year','Range', 
+                 'Township', 'Section', 'Quarter Section', 'Subdivision Name', 
+                 'Located On Parcel', 'Taxable Value - Current Year', 
+                 'Total Market Value - Prior Year'] , axis=1, inplace=True)
+
+
+# Finding if there are duplicate parcel numbers in improvement data set
+print([item for item, count in collections.Counter(df_taxAccount['Parcel Number']).items() if count > 1])
+
+####################################################################
+# 2.5 Address Points Dataset Preprocessing
+####################################################################
+
+df_Address_Points.info()
+
+# Dropping Non required columns
+df_Address_Points.drop(['OBJECTID', 'Address', 'Mail_Stop', 'City', 'State', 'Last_Edited', 
+                       'Status', 'HouseNumber', 'PrefixDirectional', 'StreetName', 'StreetType',
+                       'PostDirectional', 'Jurisdiction', 'AddressID'] , axis=1, inplace=True)
+
+df_Address_Points.isnull().sum().sort_values(ascending=False) 
+df_Address_Points =  df_Address_Points[~df_Address_Points['TaxParcelNumber'].isnull()]
+
+
+print([item for item, count in collections.Counter(df_Address_Points['TaxParcelNumber']).items() if count > 1])
+# Removing rows having duplicate Parcel number
+df_Address_Points = df_Address_Points.drop_duplicates(subset=['TaxParcelNumber'], keep='last')
+
+####################################################################
+# 2.6 School Dataset Preprocessing
+####################################################################
+df_school_Data.info()
+
+# Dropping Non required columns
+df_school_Data.drop(['X', 'Y', 'OBJECTID', 'NAME', 'ADDRESS', 'CITY', 'DISTRICT',
+                       'DIST_NO', 'TYPE', 'PHONE', 'WEBSITE', 'PRS_ID', 'GRADE'] , axis=1, inplace=True)
+
+df_school_Data.isnull().sum().sort_values(ascending=False) 
+
+####################################################################
+# 3 Merging various datasets
+####################################################################
+
+df_appraisalFinal.info()
+df_improvement.info()
+df_improvementBuiltAs.info()
+df_taxAccount.info()
+
+# Merging tax account and appraisal datasets
+df_merged = pd.merge(df_appraisalFinal, df_taxAccount, left_on='Parcel Number', right_on='Parcel Number', how='inner')
+df_merged.info()
+# Checking for Duplicate Parcel Numbers
+print([item for item, count in collections.Counter(df_merged['Parcel Number']).items() if count > 1])
+
+
+# Merging improvement and improvement BuiltAs dataset
+# Merging datasets using left join to consider all rows of improvement table
+df_improvement_merged = pd.merge(df_improvement, df_improvementBuiltAs, left_on=['Parcel Number', 'Building ID'], 
+                                 right_on=['Parcel Number', 'Building ID'], how='left')
+
+# Dropping Building ID after merging as it is not required for further analysis
+df_improvement_merged.drop(['Building ID'] , axis=1, inplace=True)
+
+# Finding if there are duplicate parcel numbers in improvement merged data sets, for duplicate values
+# select the property row which got remodelled in the last
+df_improvement_merged= df_improvement_merged.sort_values(by=['Year Remodeled'], ascending=True)
+print([item for item, count in collections.Counter(df_improvement_merged['Parcel Number']).items() if count > 1])
+df_improvement_merged = df_improvement_merged.drop_duplicates(subset=['Parcel Number'], keep= 'last')
+
+
+# Merging the improvement merged data set with the merged dataset
+df_merged = pd.merge(df_merged, df_improvement_merged, left_on='Parcel Number', 
+                     right_on='Parcel Number', how='inner')
+
+print([item for item, count in collections.Counter(df_merged['Parcel Number']).items() if count > 1])
+
+df_merged.info()
+
+# Finding the correlation matric for the merged dataset for highly correlated variables
+numericCorrelatedVariables = DetermineCorrelatedVariables(df_merged)
+print(numericCorrelatedVariables)
+
+
+# Finding if there are duplicate Parcel numbers in merged data set
+print([item for item, count in collections.Counter(df_merged['Parcel Number']).items() if count > 1])
+df_merged.isnull().sum().sort_values(ascending=False) 
+
+df_merged.drop(['Built-As Description', 'Buildings'] , axis=1, inplace=True)
+
+
+# Merging the merged dataset with address points to get the property coordinates information
+# Merged the datasets using inner join to consider only properties which are present in both
+df_merged = pd.merge(df_merged, df_Address_Points, left_on='Parcel Number', right_on='TaxParcelNumber', how='inner')
+
+
+# Merging with merged dataset with school dataset
+
+# For each property calculate the average school score of the all the schools which are within 2 mile property radius
+# and are present in same zipcode
+df_merged['Average School Score']  = df_merged.apply(lambda row: CalculateAverageSchoolScore(row, 
+                                        df_school_Data), axis = 1)
+
+df_merged.isnull().sum().sort_values(ascending=False) 
+
+# Finding the correlation matric for the merged dataset for highly correlated variables
+numericCorrelatedVariables = DetermineCorrelatedVariables(df_merged)
+print(numericCorrelatedVariables)
+
+# Dropping Non Required Columns from the merged datasets
+df_merged.drop(['Parcel Number', 'Longitude', 'X', 'Y', 'TaxParcelNumber',
+                'Utility Electric_POWER INSTALLED', 'Utility Electric_POWER NO - COMMENT', 
+                'Utility Sewer_SEWER/SEPTIC INSTALLED', 'Utility Sewer_SEWER/SEPTIC NO', 
+                'Utility Water_WATER INSTALLED', 'Utility Water_WATER NO', 'Street Type_STREET NO ROAD', 
+                'Street Type_STREET UNPAVED', 'Utility Sewer_SEWER/SEPTIC NO PERC', 
+                'Year Remodeled'] , axis=1, inplace=True)
+
+# Removing rows with null values
+df_merged = df_merged.dropna(axis=0)
+
+# Analyzing the correlation matrix of the merged datasets
+corrMatrixMarketValue = df_merged.corr()
+sns.heatmap(corrMatrixMarketValue, annot=True, cmap='coolwarm')
+plt.title('Correlation Matrix - Numeric Variables')
+plt.show()
+
+df_merged.info()
+df_merged.columns

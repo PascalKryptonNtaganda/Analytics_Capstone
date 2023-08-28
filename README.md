@@ -1,4 +1,4 @@
-# Analytics_Capstone
+# Master of Science in Analytics Capstone
 Factors Influencing Residential Properties Sales Price Pre- Covid and Post-Covid and A Machine Learning Approach on Predicting Market Value in 2023 for Residential Properties.
 
 This study investigates the significant features influencing the sales price of residential properties both pre and post Covid-19, aiming to identify potential variations in factors affecting property values during these periods. In addition, we aim to build a machine learning model capable of predicting the total market value of residential properties.
